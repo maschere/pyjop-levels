@@ -1,5 +1,5 @@
 # pyjop-levels
-This repository contains the source-code for most of the levels included in [JOY OF PROGRAMMING](https://store.steampowered.com/app/2216770). If you are creating your own levels this might be a good starting point. Beware that these source codes include spoilers about each levels and might make it easier for you to solve them.
+This repository contains the source-code for most of the levels included in [JOY OF PROGRAMMING](https://store.steampowered.com/app/2216770). If you are creating your own levels this might be a good starting point. Beware that these sources include spoilers about each level and might make it easier for you to solve them.
 
 # Contributing
 
