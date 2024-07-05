@@ -24,7 +24,7 @@ data = DataModel()
 
 ### CONSTRUCTION CODE - Add all code to setup the level (select map, spawn entities) here ###
 editor.select_map(SpawnableMaps.MuseumHall)
-editor.spawn_entity(SpawnableEntities.PinHacker, "safe", location=(-0.000,-3.750,0.000), rotation=(0.000,0.000,90.000), scale=(1.500,1.500,1.500)) #generated-code
+editor.spawn_entity(SpawnableEntities.PinHacker, "safe", location=(-0.000,-3.750,0.000), rotation=(0.000,0.000,90.000), scale=(1.500,1.500,1.500), is_controllable=False) 
 editor.spawn_entity(SpawnableEntities.DataExchange, "pc", location=(5.350,-1.800,0.000), rotation=(0.000,0.000,90.000)) #generated-code
 editor.spawn_entity(SpawnableEntities.InputBox, "pin_input", location=(-0.5, -3.5, 2.0))
 
