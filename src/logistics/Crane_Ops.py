@@ -15,7 +15,7 @@ class DataModel(DataModelBase):
     def __init__(self) -> None:
         super().__init__()
         self.correct_instructions = "UUUUURRRRRDDDDDLLLLL"
-        
+        self.player_crane_commands = []
 
 data = DataModel()
 ### END DATA MODEL ###
@@ -33,12 +33,14 @@ def spawn_temp_object():
     editor.spawn_static_mesh(SpawnableMeshes.TireWheel, "tire", location=(5, -5, 1), rotation=(90, 0, 0), simulate_physics=True, is_temp=True)
 
     
-def generate_instruction_sets(cargo_x, cargo_y, max_instructions=25): # cargo_x and cargo_y for possible generation of correct paths
+def generate_instruction_sets(cargo_x, cargo_y, max_instructions=26): # cargo_x and cargo_y for possible generation of correct paths
     
-    # This could also generate a random correct path, if I only knew how to do it properly
+    # This could also generate a random correct path
     def select_correct_path():
         data.correct_instructions = random.choice([
-        
+        "RURUUURRRRULLDDDDLLLLDLLRR",
+        "LUUURRRUULRRRRDDDDLLLLLDDU"
+        "URURRRRRLLRUUULLDLDLDLDDLR"    
         ])
 
     def generate_incorrect_path():
@@ -50,7 +52,7 @@ def generate_instruction_sets(cargo_x, cargo_y, max_instructions=25): # cargo_x 
 
     # Generate nine incorrect paths
     instruction_sets = []
-    instruction_sets.append(data.correct_instructions)
+    instruction_sets.append(data.correct_instructions) # Replace with select_correct_path()
     while len(instruction_sets) < 10:
         instruction_sets.append(generate_incorrect_path())
 
@@ -88,7 +90,7 @@ editor.specify_goal("levelGoal", "Follow the crane instructions that return the 
 ### ON BEGIN PLAY CODE - Add any code that should be executed after constructing the level once. ###
 def begin_play():
     print("begin play")
-    AirliftCrane.first().editor_set_shake_intensity(0)
+    AirliftCrane.first().editor_set_shake_intensity(0) # Shaking causes inaccuracies tracking the location
     on_reset()
 
 
@@ -118,7 +120,24 @@ editor.on_level_reset(on_reset)
 
 ### ON PLAYER COMMAND CODE - Add code that should be executed each time the player issues a code command to an entity
 def on_player_command(gametime:float, entity_type:str, entity_name:str, command:str, val:NPArray):
-    print(f"player command at {gametime}: {entity_type}.{entity_name}.{command}")
+    if entity_name == "crane" and command == "setTargetLocation": 
+        new_x = float(val.array_data[0][0])
+        new_y = float(val.array_data[0][1])
+        # add player move commands to data.player_crane_commands to evaluate if they match with correct instructions
+        if new_x > list(editor.get_location("crane"))[0]:
+            data.player_crane_commands.append("R")
+            print("Player moved crane right!")
+        elif new_x < list(editor.get_location("crane"))[0]:
+            data.player_crane_commands.append("L")
+            print("Player moved crane left!")
+        elif new_y < list(editor.get_location("crane"))[1]:
+            data.player_crane_commands.append("U")
+            print("Player moved crane up!")
+        elif new_y > list(editor.get_location("crane"))[1]:
+            data.player_crane_commands.append("D")
+            print("Player moved crane down!")
+    print("player instuction set: ", data.player_crane_commands)
+    print("Correct instruction set: ", data.correct_instructions)
 
 editor.on_player_command(on_player_command)
 ### END ON PLAYER COMMAND CODE ###
@@ -128,8 +147,6 @@ def on_tick(simtime: float, deltatime: float):
     # Airlift Crane doesn't have built-in getter for location. Lets send it to data exchange but round to closest integer
     crane_location = list(editor.get_location("crane"))
     rounded_location = [round(val, 0) for val in crane_location]
-    
-    print("crane_location: ", rounded_location)
     DataExchange.first().set_data("crane_location", rounded_location)
     sleep(0.3)
 
