@@ -16,6 +16,7 @@ class DataModel(DataModelBase):
         super().__init__()
         self.correct_instructions = "UUUUURRRRRDDDDDLLLLL"
         self.player_crane_commands = []
+        self.cargo_delivered = 0.01 # this is substracted from the goal progress and set to 0 when kill zone triggers with cargo
 
 data = DataModel()
 ### END DATA MODEL ###
@@ -35,7 +36,7 @@ def spawn_temp_object():
     
 def generate_instruction_sets(cargo_x, cargo_y, max_instructions=26): # cargo_x and cargo_y for possible generation of correct paths
     
-    # This could also generate a random correct path
+    # This could also generate a random correct path, not yet called anywhere
     def select_correct_path():
         data.correct_instructions = random.choice([
         "RURUUURRRRULLDDDDLLLLDLLRR",
@@ -71,14 +72,23 @@ def generate_instruction_sets(cargo_x, cargo_y, max_instructions=26): # cargo_x 
 editor.set_goals_intro_text("There are crane instruction sets in the data exchange. Select the one that returns the crane to the "
                            " drop zone and move the crane according to the instructions ")
 
-def sample_goal(goal_name: str):
+def get_progress():
+    correct_command_count = 0
+    for i in range(len(data.player_crane_commands)):
+        if data.player_crane_commands[i] == data.correct_instructions[i]:
+            correct_command_count += 1
+        else: editor.set_goal_state("levelGoal", GoalState.Fail)
+        
+    return correct_command_count / len(data.correct_instructions)
+    
+def level_goal(goal_name: str):
     editor.set_goal_progress(
         goal_name,
-        1 / 30,
+        get_progress() - 0.01 , #minus 0.01 for also finally checking the cargo collision with drop zone
         f"Follow the crane instructions that return the cargo to the drop zone",
     )
 
-editor.specify_goal("levelGoal", "Follow the crane instructions that return the cargo to the drop zone", sample_goal)
+editor.specify_goal("levelGoal", "Follow the crane instructions that return the cargo to the drop zone", level_goal)
 ### END GOAL CODE ###
 
 
@@ -88,9 +98,17 @@ editor.specify_goal("levelGoal", "Follow the crane instructions that return the 
 
 
 ### ON BEGIN PLAY CODE - Add any code that should be executed after constructing the level once. ###
+
+def on_kill(trig:Killzone, gt:float, e:TriggerEvent):
+    if e.entity_name == "tire":
+        data.cargo_dropped = 0 # This signals that the cargo is dropped and adjusts goal progress, 0 is actually more like 1
+
 def begin_play():
     print("begin play")
     AirliftCrane.first().editor_set_shake_intensity(0) # Shaking causes inaccuracies tracking the location
+    drop_zone = Killzone.first()
+    drop_zone.on_kill(on_kill)
+    
     on_reset()
 
 
@@ -121,23 +139,22 @@ editor.on_level_reset(on_reset)
 ### ON PLAYER COMMAND CODE - Add code that should be executed each time the player issues a code command to an entity
 def on_player_command(gametime:float, entity_type:str, entity_name:str, command:str, val:NPArray):
     if entity_name == "crane" and command == "setTargetLocation": 
+        # Extract player commanded coordinate values for the crane
         new_x = float(val.array_data[0][0])
         new_y = float(val.array_data[0][1])
         # add player move commands to data.player_crane_commands to evaluate if they match with correct instructions
+        # This may require a bit more sophisticated approach
         if new_x > list(editor.get_location("crane"))[0]:
             data.player_crane_commands.append("R")
-            print("Player moved crane right!")
+            
         elif new_x < list(editor.get_location("crane"))[0]:
             data.player_crane_commands.append("L")
-            print("Player moved crane left!")
+            
         elif new_y < list(editor.get_location("crane"))[1]:
             data.player_crane_commands.append("U")
-            print("Player moved crane up!")
+            
         elif new_y > list(editor.get_location("crane"))[1]:
             data.player_crane_commands.append("D")
-            print("Player moved crane down!")
-    print("player instuction set: ", data.player_crane_commands)
-    print("Correct instruction set: ", data.correct_instructions)
 
 editor.on_player_command(on_player_command)
 ### END ON PLAYER COMMAND CODE ###
