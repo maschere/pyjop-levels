@@ -24,14 +24,14 @@ data = DataModel()
 
 ### CONSTRUCTION CODE - Add all code to setup the level (select map, spawn entities) here ###
 editor.select_map(SpawnableMaps.GrasslandOutdoor)
-editor.spawn_entity(SpawnableEntities.Killzone, "drop_zone", location=(0, 0, 0 ))
+editor.spawn_entity(SpawnableEntities.TriggerZone, "drop_zone", location=(0, 0, 0 ))
 editor.spawn_entity(SpawnableEntities.AirliftCrane, "crane", location=(0, 0, 5))
 
 editor.spawn_entity(SpawnableEntities.DataExchange, "control_center", location=(5, 3, 0))
 
 
 def spawn_temp_object():
-    editor.spawn_static_mesh(SpawnableMeshes.TireWheel, "tire", location=(5, -5, 1), rotation=(90, 0, 0), simulate_physics=True, is_temp=True)
+    editor.spawn_static_mesh(SpawnableMeshes.TireWheel, "tire", location=(0, 0, 3), rotation=(90, 0, 0), simulate_physics=True, is_temp=True)
 
     
 def generate_instruction_sets(cargo_x, cargo_y, max_instructions=26): # cargo_x and cargo_y for possible generation of correct paths
@@ -84,7 +84,7 @@ def get_progress():
 def level_goal(goal_name: str):
     editor.set_goal_progress(
         goal_name,
-        get_progress() - 0.01 , #minus 0.01 for also finally checking the cargo collision with drop zone
+        get_progress() - data.cargo_delivered , #minus cargo delivered (0.01) for also finally checking the cargo collision with drop zone
         f"Follow the crane instructions that return the cargo to the drop zone",
     )
 
@@ -99,15 +99,17 @@ editor.specify_goal("levelGoal", "Follow the crane instructions that return the 
 
 ### ON BEGIN PLAY CODE - Add any code that should be executed after constructing the level once. ###
 
-def on_kill(trig:Killzone, gt:float, e:TriggerEvent):
+def on_drop(trig:TriggerZone, gt:float, e:TriggerEvent):
     if e.entity_name == "tire":
+        print("debug log: tire dropped to drop zone")
         data.cargo_dropped = 0 # This signals that the cargo is dropped and adjusts goal progress, 0 is actually more like 1
+        editor.destroy("tire")
 
 def begin_play():
     print("begin play")
     AirliftCrane.first().editor_set_shake_intensity(0) # Shaking causes inaccuracies tracking the location
-    drop_zone = Killzone.first()
-    drop_zone.on_kill(on_kill)
+    drop_zone = TriggerZone.first()
+    drop_zone.on_triggered(on_drop)
     
     on_reset()
 
@@ -120,7 +122,6 @@ editor.on_begin_play(begin_play)
 def on_reset():
     print("level resetting")
     data.reset()
-    Killzone.first().set_autokill_enabled=True
     spawn_temp_object()
 
     # setup cargo location and generate crane instruction sets to data exchange    
@@ -166,6 +167,7 @@ def on_tick(simtime: float, deltatime: float):
     rounded_location = [round(val, 0) for val in crane_location]
     DataExchange.first().set_data("crane_location", rounded_location)
     sleep(0.3)
+    
 
 
 editor.on_tick(on_tick)
