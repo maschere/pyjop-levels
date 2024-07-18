@@ -31,7 +31,7 @@ editor.spawn_entity(SpawnableEntities.DataExchange, "control_center", location=(
 
 
 def spawn_temp_object():
-    editor.spawn_static_mesh(SpawnableMeshes.TireWheel, "tire", location=(0, 0, 3), rotation=(90, 0, 0), simulate_physics=True, is_temp=True)
+    editor.spawn_static_mesh(SpawnableMeshes.TireWheel, "tire", location=(5, 5, 0), rotation=(90, 0, 0), simulate_physics=True, is_temp=True)
 
     
 def generate_instruction_sets(cargo_x, cargo_y, max_instructions=26): # cargo_x and cargo_y for possible generation of correct paths
