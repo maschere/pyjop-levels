@@ -16,7 +16,7 @@ class DataModel(DataModelBase):
         super().__init__()
         self.correct_instructions = "UUUUURRRRRDDDDDLLLLL"
         self.player_crane_commands = []
-        self.cargo_delivered = 0.01 # this is substracted from the goal progress and set to 0 when kill zone triggers with cargo
+        self.cargo_delivered = -0.01 # this is substracted from the goal progress and set to 0 when kill zone triggers with cargo
 
 data = DataModel()
 ### END DATA MODEL ###
@@ -24,14 +24,14 @@ data = DataModel()
 
 ### CONSTRUCTION CODE - Add all code to setup the level (select map, spawn entities) here ###
 editor.select_map(SpawnableMaps.GrasslandOutdoor)
-editor.spawn_entity(SpawnableEntities.TriggerZone, "drop_zone", location=(0, 0, 0 ))
+editor.spawn_entity(SpawnableEntities.TriggerZone, "drop_zone", location=(0, 0, 0), scale=(2.0, 2.0, 1))
 editor.spawn_entity(SpawnableEntities.AirliftCrane, "crane", location=(0, 0, 5))
 
 editor.spawn_entity(SpawnableEntities.DataExchange, "control_center", location=(5, 3, 0))
 
 
 def spawn_temp_object():
-    editor.spawn_static_mesh(SpawnableMeshes.TireWheel, "tire", location=(5, 5, 0), rotation=(90, 0, 0), simulate_physics=True, is_temp=True)
+    editor.spawn_static_mesh(SpawnableMeshes.TireWheel, "tire", location=(0, 0, 4), rotation=(90, 0, 0), simulate_physics=True, is_temp=True)
 
     
 def generate_instruction_sets(cargo_x, cargo_y, max_instructions=26): # cargo_x and cargo_y for possible generation of correct paths
@@ -63,6 +63,15 @@ def generate_instruction_sets(cargo_x, cargo_y, max_instructions=26): # cargo_x 
     return instruction_sets
 
 
+def handle_overlap(t,simtime,trigg_data):
+    if trigg_data.begin_overlap:
+        print(f"overlap with ")
+    else:
+        print("end overlap")
+    if trigg_data.entity_name == "tire":
+        print("debug log: tire dropped to drop zone")
+        data.cargo_dropped = 0.01 # This signals that the cargo is dropped and adjusts goal progress
+        editor.destroy("tire")
 
 ### END CONSTRUCTION CODE ###
 
@@ -70,7 +79,7 @@ def generate_instruction_sets(cargo_x, cargo_y, max_instructions=26): # cargo_x 
 ### GOAL CODE - Define all goals for the player here and implement the goal update functions. ###
 
 editor.set_goals_intro_text("There are crane instruction sets in the data exchange. Select the one that returns the crane to the "
-                           " drop zone and move the crane according to the instructions ")
+                           " start point/drop zone (0,0) and move the crane according to the instructions in the correct set")
 
 def get_progress():
     correct_command_count = 0
@@ -84,11 +93,11 @@ def get_progress():
 def level_goal(goal_name: str):
     editor.set_goal_progress(
         goal_name,
-        get_progress() - data.cargo_delivered , #minus cargo delivered (0.01) for also finally checking the cargo collision with drop zone
+        get_progress() + data.cargo_delivered , #minus cargo delivered (0.01) for also finally checking the cargo collision with drop zone
         f"Follow the crane instructions that return the cargo to the drop zone",
     )
 
-editor.specify_goal("levelGoal", "Follow the crane instructions that return the cargo to the drop zone", level_goal)
+editor.specify_goal("levelGoal", "Follow the crane instructions that return the cargo to the starting position/drop zone at 0,0", level_goal)
 ### END GOAL CODE ###
 
 
@@ -99,17 +108,15 @@ editor.specify_goal("levelGoal", "Follow the crane instructions that return the 
 
 ### ON BEGIN PLAY CODE - Add any code that should be executed after constructing the level once. ###
 
-def on_drop(trig:TriggerZone, gt:float, e:TriggerEvent):
-    if e.entity_name == "tire":
-        print("debug log: tire dropped to drop zone")
-        data.cargo_dropped = 0 # This signals that the cargo is dropped and adjusts goal progress, 0 is actually more like 1
-        editor.destroy("tire")
+
+
+    
 
 def begin_play():
     print("begin play")
     AirliftCrane.first().editor_set_shake_intensity(0) # Shaking causes inaccuracies tracking the location
-    drop_zone = TriggerZone.first()
-    drop_zone.on_triggered(on_drop)
+    trigg = TriggerZone.first()
+    trigg.on_triggered(handle_overlap)
     
     on_reset()
 
@@ -167,7 +174,9 @@ def on_tick(simtime: float, deltatime: float):
     rounded_location = [round(val, 0) for val in crane_location]
     DataExchange.first().set_data("crane_location", rounded_location)
     sleep(0.3)
-    
+    trigg = TriggerZone.first()
+    for overlap in trigg.get_overlaps():
+        print(f"triggered at {overlap.entity_name}") 
 
 
 editor.on_tick(on_tick)
