@@ -65,8 +65,8 @@ def generate_instruction_sets(cargo_x, cargo_y, max_instructions=26): # cargo_x 
 
 def handle_overlap(t,simtime,trigg_data):
     if trigg_data.entity_name == "tire":
-        print("debug log: tire dropped to drop zone")
-        data.cargo_dropped = 0.01 # This signals that the cargo is dropped and adjusts goal progress
+        #print("debug log: tire dropped to drop zone")
+        data.cargo_delivered = 0.01 # This signals that the cargo is dropped and adjusts goal progress
         
 
 ### END CONSTRUCTION CODE ###
@@ -82,7 +82,10 @@ def get_progress():
     for i in range(len(data.player_crane_commands)):
         if data.player_crane_commands[i] == data.correct_instructions[i]:
             correct_command_count += 1
-        else: editor.set_goal_state("levelGoal", GoalState.Fail)
+        else:
+            print("Fail - Player commands: ", data.player_crane_commands)
+            print("Correct commands: ", data.correct_instructions)
+            editor.set_goal_state("levelGoal", GoalState.Fail)
         
     return correct_command_count / len(data.correct_instructions)
     
@@ -108,7 +111,7 @@ editor.specify_goal("levelGoal", "Follow the crane instructions that return the 
 def begin_play():
     print("begin play")
     AirliftCrane.first().editor_set_shake_intensity(0) # Shaking causes inaccuracies tracking the location
-
+    sleep(5) # This seems to help to register the event handler correctly on first start, without needing a restart to make it work
     on_reset()
 
 
@@ -141,11 +144,12 @@ editor.on_level_reset(on_reset)
 ### ON PLAYER COMMAND CODE - Add code that should be executed each time the player issues a code command to an entity
 def on_player_command(gametime:float, entity_type:str, entity_name:str, command:str, val:NPArray):
     if entity_name == "crane" and command == "setTargetLocation": 
+        
         # Extract player commanded coordinate values for the crane
         new_x = float(val.array_data[0][0])
         new_y = float(val.array_data[0][1])
         # add player move commands to data.player_crane_commands to evaluate if they match with correct instructions
-        # This may require a bit more sophisticated approach, there seems to be maybe a rounding issue after player picks up cargo and uses setTargetLocation
+        # This may require a bit more sophisticated approach
         if new_x > list(editor.get_location("crane"))[0]:
             data.player_crane_commands.append("R")
             
@@ -158,7 +162,7 @@ def on_player_command(gametime:float, entity_type:str, entity_name:str, command:
         elif new_y > list(editor.get_location("crane"))[1]:
             data.player_crane_commands.append("D")
     
-    elif entity_name == "crane" and command =="pickup":
+    elif entity_name == "crane" and command =="Pickup":
         data.player_crane_commands.append("P")
 
 editor.on_player_command(on_player_command)
