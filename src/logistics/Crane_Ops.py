@@ -14,7 +14,7 @@ import random
 class DataModel(DataModelBase):
     def __init__(self) -> None:
         super().__init__()
-        self.correct_instructions = "UUUUURRRRRDDDDDLLLLL"
+        self.correct_instructions = "UUUUURRRRRPDDDDDLLLLL"
         self.player_crane_commands = []
         self.cargo_delivered = -0.01 # this is substracted from the goal progress and set to 0 when kill zone triggers with cargo
 
@@ -31,7 +31,7 @@ editor.spawn_entity(SpawnableEntities.DataExchange, "control_center", location=(
 
 
 def spawn_temp_object():
-    editor.spawn_static_mesh(SpawnableMeshes.TireWheel, "tire", location=(0, 0, 4), rotation=(90, 0, 0), simulate_physics=True, is_temp=True)
+    editor.spawn_static_mesh(SpawnableMeshes.TireWheel, "tire", location=(5, -5, 1), rotation=(90, 0, 0), simulate_physics=True, is_temp=True)
 
     
 def generate_instruction_sets(cargo_x, cargo_y, max_instructions=26): # cargo_x and cargo_y for possible generation of correct paths
@@ -64,14 +64,10 @@ def generate_instruction_sets(cargo_x, cargo_y, max_instructions=26): # cargo_x 
 
 
 def handle_overlap(t,simtime,trigg_data):
-    if trigg_data.begin_overlap:
-        print(f"overlap with ")
-    else:
-        print("end overlap")
     if trigg_data.entity_name == "tire":
         print("debug log: tire dropped to drop zone")
         data.cargo_dropped = 0.01 # This signals that the cargo is dropped and adjusts goal progress
-        editor.destroy("tire")
+        
 
 ### END CONSTRUCTION CODE ###
 
@@ -109,15 +105,10 @@ editor.specify_goal("levelGoal", "Follow the crane instructions that return the 
 ### ON BEGIN PLAY CODE - Add any code that should be executed after constructing the level once. ###
 
 
-
-    
-
 def begin_play():
     print("begin play")
     AirliftCrane.first().editor_set_shake_intensity(0) # Shaking causes inaccuracies tracking the location
-    trigg = TriggerZone.first()
-    trigg.on_triggered(handle_overlap)
-    
+
     on_reset()
 
 
@@ -128,11 +119,14 @@ editor.on_begin_play(begin_play)
 ### ON LEVEL RESET CODE - Add code that should be executed on every level reset. ###
 def on_reset():
     print("level resetting")
+    editor.set_goal_state("levelGoal", GoalState.Open)
     data.reset()
     spawn_temp_object()
+    trigg = TriggerZone.first()
+    trigg.on_triggered(handle_overlap) 
 
     # setup cargo location and generate crane instruction sets to data exchange    
-    cargo_x, cargo_y = 5, 5
+    cargo_x, cargo_y = 5, -5
     instruction_sets = generate_instruction_sets(cargo_x, cargo_y)
 
     for i, instructions in enumerate(instruction_sets):
@@ -151,7 +145,7 @@ def on_player_command(gametime:float, entity_type:str, entity_name:str, command:
         new_x = float(val.array_data[0][0])
         new_y = float(val.array_data[0][1])
         # add player move commands to data.player_crane_commands to evaluate if they match with correct instructions
-        # This may require a bit more sophisticated approach
+        # This may require a bit more sophisticated approach, there seems to be maybe a rounding issue after player picks up cargo and uses setTargetLocation
         if new_x > list(editor.get_location("crane"))[0]:
             data.player_crane_commands.append("R")
             
@@ -163,6 +157,9 @@ def on_player_command(gametime:float, entity_type:str, entity_name:str, command:
             
         elif new_y > list(editor.get_location("crane"))[1]:
             data.player_crane_commands.append("D")
+    
+    elif entity_name == "crane" and command =="pickup":
+        data.player_crane_commands.append("P")
 
 editor.on_player_command(on_player_command)
 ### END ON PLAYER COMMAND CODE ###
@@ -174,9 +171,7 @@ def on_tick(simtime: float, deltatime: float):
     rounded_location = [round(val, 0) for val in crane_location]
     DataExchange.first().set_data("crane_location", rounded_location)
     sleep(0.3)
-    trigg = TriggerZone.first()
-    for overlap in trigg.get_overlaps():
-        print(f"triggered at {overlap.entity_name}") 
+
 
 
 editor.on_tick(on_tick)
