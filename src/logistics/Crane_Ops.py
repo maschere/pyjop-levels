@@ -14,7 +14,7 @@ import random
 class DataModel(DataModelBase):
     def __init__(self) -> None:
         super().__init__()
-        self.correct_instructions = "UUUUURRRRRPDDDDDLLLLL"
+        self.correct_instructions = "LURURRUURRRRLUPDDDLDLLDLL"
         self.player_crane_commands = []
         self.cargo_delivered = -0.01 # this is substracted from the goal progress and set to 0 when kill zone triggers with cargo
 
@@ -25,7 +25,7 @@ data = DataModel()
 ### CONSTRUCTION CODE - Add all code to setup the level (select map, spawn entities) here ###
 editor.select_map(SpawnableMaps.GrasslandOutdoor)
 editor.spawn_entity(SpawnableEntities.TriggerZone, "drop_zone", location=(0, 0, 0), scale=(2.0, 2.0, 1))
-editor.spawn_entity(SpawnableEntities.AirliftCrane, "crane", location=(0, 0, 5))
+editor.spawn_entity(SpawnableEntities.AirliftCrane, "crane", location=(0, 0, 3))
 
 editor.spawn_entity(SpawnableEntities.DataExchange, "control_center", location=(5, 3, 0))
 
@@ -34,16 +34,16 @@ def spawn_temp_object():
     editor.spawn_static_mesh(SpawnableMeshes.TireWheel, "tire", location=(5, -5, 1), rotation=(90, 0, 0), simulate_physics=True, is_temp=True)
 
     
-def generate_instruction_sets(cargo_x, cargo_y, max_instructions=26): # cargo_x and cargo_y for possible generation of correct paths
+def generate_instruction_sets(cargo_x, cargo_y, max_instructions=25): # cargo_x and cargo_y for possible generation of correct paths
     
     # This could also generate a random correct path, not yet called anywhere
     def select_correct_path():
         data.correct_instructions = random.choice([
-        "RURUUURRRRULLDDDDLLLLDLLRR",
-        "LUUURRRUULRRRRDDDDLLLLLDDU"
-        "URURRRRRLLRUUULLDLDLDLDDLR"    
+        "URRRUUURULRRPLLLDDDLLDDDU",
+        "LURURRUURRRRLUPDDDLDLLDLL"   
         ])
-
+        return data.correct_instructions
+    
     def generate_incorrect_path():
         path = []
         for _ in range(max_instructions):
@@ -86,6 +86,7 @@ def get_progress():
             print("Fail - Player commands: ", data.player_crane_commands)
             print("Correct commands: ", data.correct_instructions)
             editor.set_goal_state("levelGoal", GoalState.Fail)
+            
         
     return correct_command_count / len(data.correct_instructions)
     
@@ -101,7 +102,8 @@ editor.specify_goal("levelGoal", "Follow the crane instructions that return the 
 
 
 ### HINTS CHAT - Define custom hints as question / answer pairs that the player can get answers to via the assistant chat in-game. Consecutive hints are hidden until the direct precursor is revealed.###
-
+editor.add_hint(0,["How should I solve the level?"], "There are instruction sets on the Data Exchange. Only one of them is a correct one which ends up back in the beginning (0, 0). You should create a code that reads the move instructions U=Up D=Down L=Left R=Right P=Pickup and determines what set will return to center. You should then program the crane to move accordingly. For example if there's instruction UP, the crane should move -1.0 on the Y-axis. You can get the current location of the crane from the data exchange")
+               
 ### END HINTS ###
 
 
@@ -111,7 +113,7 @@ editor.specify_goal("levelGoal", "Follow the crane instructions that return the 
 def begin_play():
     print("begin play")
     AirliftCrane.first().editor_set_shake_intensity(0) # Shaking causes inaccuracies tracking the location
-    sleep(5) # This seems to help to register the event handler correctly on first start, without needing a restart to make it work
+    sleep(3) # This seems to help to register the event handler correctly on first start, without needing a restart to make it work
     on_reset()
 
 
@@ -145,7 +147,7 @@ editor.on_level_reset(on_reset)
 def on_player_command(gametime:float, entity_type:str, entity_name:str, command:str, val:NPArray):
     if entity_name == "crane" and command == "setTargetLocation": 
         
-        # Extract player commanded coordinate values for the crane
+        # Extract player commanded coordinate values (only x and y, ignoring z) for the crane
         new_x = float(val.array_data[0][0])
         new_y = float(val.array_data[0][1])
         # add player move commands to data.player_crane_commands to evaluate if they match with correct instructions
@@ -170,11 +172,11 @@ editor.on_player_command(on_player_command)
 
 ### LEVEL TICK CODE - Add code that should be executed on every simulation tick. ###
 def on_tick(simtime: float, deltatime: float):
-    # Airlift Crane doesn't have built-in getter for location. Lets send it to data exchange but round to closest integer
+    # Airlift Crane doesn't have built-in getter for location. Lets send it to data exchange with editor code but round to closest integer
     crane_location = list(editor.get_location("crane"))
     rounded_location = [round(val, 0) for val in crane_location]
     DataExchange.first().set_data("crane_location", rounded_location)
-    sleep(0.3)
+    sleep(1)
 
 
 
