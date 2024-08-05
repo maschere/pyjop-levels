@@ -25,11 +25,13 @@ editor.select_map(SpawnableMaps.Bridge)
 
 editor.spawn_static_mesh(SpawnableMeshes.TrafficCone, location=(2.8, 8, 0), scale=(3, 3, 3))
 editor.spawn_static_mesh(SpawnableMeshes.TrafficCone, location=(3, 7, 0), scale=(3, 3, 3))
-editor.spawn_static_mesh(SpawnableMeshes.TrafficCone, location=(-2, -8, 0), scale=(3, 3, 3))
+editor.spawn_static_mesh(SpawnableMeshes.TrafficCone, location=(-2.5, -0.2, 0), scale=(3, 3, 3))
 editor.spawn_static_mesh(SpawnableMeshes.SmallFence, location=(-2, 8, 0), rotation=(0, 0, 90))
 editor.spawn_static_mesh(SpawnableMeshes.SmallFence, location=(5.2, 7, 0), rotation=(0, 0, 0), scale=(1.5, 1, 1))
-editor.spawn_static_mesh(SpawnableMeshes.SmallFence, location=(0, -7.5, 0), rotation=(0, 0, 0), scale=(1.5, 1, 1))
-editor.spawn_static_mesh(SpawnableMeshes.SmallFence, location=(3.2, -7.5, 0), rotation=(0, 0, 0), scale=(1.5, 1, 1))
+editor.spawn_static_mesh(SpawnableMeshes.SmallFence, color=(1.0000,1.0000,1.0000), location=(8.750,7.000,0.000), scale=(1.500,1.000,1.000)) #generated-code
+editor.spawn_static_mesh(SpawnableMeshes.SmallFence, location=(0, -0.25, 0), rotation=(0, 0, 0), scale=(1.5, 1, 1))
+editor.spawn_static_mesh(SpawnableMeshes.SmallFence, location=(3.8, -0.25, 0), rotation=(0, 0, 0), scale=(1.5, 1, 1))
+editor.spawn_static_mesh(SpawnableMeshes.SmallFence, color=(1.0000,1.0000,1.0000), location=(5.800,-8.350,0.000), rotation=(0.000,0.000,90.000), scale=(-1.013,1.000,1.000)) #generated-code
 
 editor.spawn_entity(SpawnableEntities.ProximitySensor, "proximity_sensor1", location=(30, -8, 0))
 editor.spawn_entity(SpawnableEntities.RangeFinder, "range_finder1", location=(-30, 8, 0))
