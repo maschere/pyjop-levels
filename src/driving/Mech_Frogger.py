@@ -37,7 +37,10 @@ editor.spawn_entity(SpawnableEntities.ProximitySensor, "proximity_sensor1", loca
 editor.spawn_entity(SpawnableEntities.RangeFinder, "range_finder1", location=(-30, 8, 0))
 
 editor.spawn_entity(SpawnableEntities.TriggerZone, "goal_zone", location=(8, -8, 0), scale=(2, 2, 0.5))	
-editor.spawn_entity(SpawnableEntities.HumanoidRobot, "bot1", location=(0,8,0))
+
+
+def spawn_bot():
+    editor.spawn_entity(SpawnableEntities.HumanoidRobot, "bot1", location=(0,8,0), is_temp=True)
 
 def spawn_car():
     spawn_interval = random.uniform(1.5, 2.5)
@@ -68,16 +71,16 @@ def spawn_car():
 
 def on_collision(handler:TriggerZone,gt:float,e:TriggerEvent):
     if e.entity_name == "bot1":
-        print("Robot hit by a car!")
         editor.show_vfx(SpawnableVFX.Explosion, location = editor.get_location(e.entity_name))
         editor.play_sound(SpawnableSounds.Explosion)
-        editor.destroy("bot1")
+        editor.destroy("bot1") # This does not work for some reason, keeps looping forever. Workaround: reset level after a while
         editor.set_goal_state("level_goal", GoalState.Fail, new_text="Failed: Robot was hit by a car!")
+        sleep(2)
+        on_reset()
 
         
 def bot_in_zone(handler:TriggerZone, gt:float, e:TriggerEvent):
     if e.entity_name == "bot1":
-        print("Robot entered the target zone!")
         editor.set_goal_state("level_goal", GoalState.Success)
         
 ### END CONSTRUCTION CODE ###
@@ -117,6 +120,7 @@ editor.on_begin_play(begin_play)
 ### ON LEVEL RESET CODE - Add code that should be executed on every level reset. ###
 def on_reset():
     print("level resetting")
+    spawn_bot()
     ProximitySensor.first().editor_set_max_range(20)
     RangeFinder.first().editor_set_max_range(700)
     data.reset()
@@ -133,7 +137,6 @@ def on_player_command(gametime:float, entity_type:str, entity_name:str, command:
         print("Player set walking!")
         array_data = val.array_data
         speed = float(array_data[0][1])
-        print(f"player set speed: {speed}")
         if speed > 0.2: HumanoidRobot.first().set_walking(float(array_data[0][0]), 0.3)
         
 editor.on_player_command(on_player_command)
