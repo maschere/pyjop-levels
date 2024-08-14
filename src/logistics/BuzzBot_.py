@@ -33,19 +33,20 @@ editor.spawn_entity(SpawnableEntities.PushButton, "destroy_button", location=(0,
 
 trig_scale=(1.0, 1.0 ,0.3)
 editor.spawn_static_mesh(SpawnableMeshes.Cube, material=SpawnableMaterials.SimpleColor, color=Colors.Blue, location=(-2, -2, 0))
-editor.spawn_entity(SpawnableEntities.TriggerZone, "trig_blue", location=(-2, -2, 0.5), scale=trig_scale)
+editor.spawn_entity(SpawnableEntities.TriggerZone, "blue", location=(-2, -2, 0.5), scale=trig_scale)
 
 editor.spawn_static_mesh(SpawnableMeshes.Cube, material=SpawnableMaterials.SimpleColor, color=Colors.Red, location=(-2, 2, 0))
-editor.spawn_entity(SpawnableEntities.TriggerZone, "trig_red", location=(-2, 2, 0.5), scale=trig_scale)
+editor.spawn_entity(SpawnableEntities.TriggerZone, "red", location=(-2, 2, 0.5), scale=trig_scale)
 
 editor.spawn_static_mesh(SpawnableMeshes.Cube, material=SpawnableMaterials.SimpleColor, color=Colors.Yellow, location=(-4, 0, 0))
-editor.spawn_entity(SpawnableEntities.TriggerZone, "trig_yellow", location=(-4, 0, 0.5), scale=trig_scale)
+editor.spawn_entity(SpawnableEntities.TriggerZone, "yellow", location=(-4, 0, 0.5), scale=trig_scale)
 
 def spawn_temp_object():
     data.checksum = random.randint(111, 999)
     editor.spawn_static_mesh(SpawnableMeshes.CardboardBox, location=(0, 0, 3), rfid_tag=f"chksum={data.checksum}", is_temp=True, simulate_physics=True)
+    editor.play_sound(SpawnableSounds.HitCardboard)
     n = data.checksum
-     if n % 3 == 0 and n % 5 == 0:
+    if n % 3 == 0 and n % 5 == 0:
         data.correct_destination = "yellow"
     elif n % 3 == 0:
         data.correct_destination = 'blue'
@@ -57,7 +58,15 @@ def spawn_temp_object():
     
 def box_in_zone(handler:TriggerZone, gt:float, e:TriggerEvent):
     print(f"box in triggerzone {handler.entity_name}")
-    
+    if handler.entity_name == data.correct_destination:
+        editor.play_sound(SpawnableSounds.ExplosionMagic)
+        data.sorted_count =+ 1
+        editor.destroy_temporaries()
+    else:
+        editor.play_sound(SpawnableSounds.ExplosionPuff)
+        editor.destroy_temporaries()
+    sleep(1)
+    spawn_temp_object()
     
     
     
