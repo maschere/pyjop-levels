@@ -150,8 +150,14 @@ def on_player_command(gametime:float, entity_type:str, entity_name:str, command:
 editor.on_player_command(on_player_command)
 ### END ON PLAYER COMMAND CODE ###
 
+editor.set_template_code(from_comment="### get the voxel data")
 
 
 ### EOF CODE - DO NOT CHANGE ###
 editor.run_editor_level()
 ### EOF ###
+
+
+### get the voxel data
+dat = DataExchange.first().get_data("VoxelTarget")
+print(dat)

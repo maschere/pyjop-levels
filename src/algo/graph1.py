@@ -76,15 +76,18 @@ class DataModel(DataModelBase):
         for n in self.graph.nodes(data="loc"):
             n:Tuple[int,Vector3] = n
             col = 0.1
+            nodename = f"node_{n[0]}"
             if n[0] == self.source:
                 col = Colors.Darkgreen
                 editor.set_location("crane", n[1])
+                nodename = f"source_node_{n[0]}"
                 #AirliftCrane.first().set_target_location(n[1])
             else:
                 editor.spawn_entity(SpawnableEntities.TriggerZone, f"trigger_point_{n[0]}", location=n[1], scale = 1.7, is_temp=True, is_clickable=False, is_readable=False, is_controllable=False)
             if n[0] == self.target:
                 col = Colors.Darkred
-            editor.spawn_static_mesh(SpawnableMeshes.Sphere, location=n[1], scale=0.7, material=SpawnableMaterials.SimpleColor, color=col, is_temp=True, rfid_tag=f"node_{n[0]}")
+                nodename = f"target_node_{n[0]}"
+            editor.spawn_static_mesh(SpawnableMeshes.Sphere, location=n[1], scale=0.7, material=SpawnableMaterials.SimpleColor, color=col, is_temp=True, rfid_tag=nodename)
             
         for e in self.graph.edges.data("weight", default=0.5):
             e:Tuple[int,int,int] = e

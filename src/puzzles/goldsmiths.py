@@ -1,6 +1,5 @@
 ### INIT CODE - DO NOT CHANGE ###
 from pyjop import *
-import types
 SimEnv.connect()
 editor = LevelEditor.first()
 ### END INIT CODE ###
@@ -113,7 +112,7 @@ def on_rpc(dat:DataExchange,rpc:RPCInvoke):
             else:
                 print(f"Unknown goldsmith: {k}", col=Colors.Orange)
         dat.return_rpc(rpc.func_name, True)
-    elif rpc.func_name == "order" and len(rpc.args) == 1 and type(rpc.args[0]) is dict:
+    elif rpc.func_name == "order" and len(rpc.args) == 1:
         data.num_rpc += 1
         for k,v in rpc.args[0].items():
             if k in GOLDSMITHS:

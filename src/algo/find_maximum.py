@@ -1,6 +1,5 @@
 ### INIT CODE - DO NOT CHANGE ###
 from pyjop import *
-import types
 SimEnv.connect()
 editor = LevelEditor.first()
 ### END INIT CODE ###

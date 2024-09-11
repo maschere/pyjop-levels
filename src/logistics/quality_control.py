@@ -67,16 +67,16 @@ editor.set_goals_intro_text(f"Deliver 5 good quality products and discard bad on
 
 def level_goal(goal_name: str):
     if data.box_count > 3:
-        editor.set_goal_state("deliver_products",GoalState.Fail,"Failed: You jammed the delivery line!")
+        editor.set_goal_state("deliver_products",GoalState.Fail,"Failed: You jammed the delivery line. Please reset.")
         return
 
     if data.incorrect_discard:
-        editor.set_goal_state("deliver_products", GoalState.Fail, new_text="Failed: good quality product discarded.")
+        editor.set_goal_state("deliver_products", GoalState.Fail, new_text="Failed: good quality product discarded. Please reset.")
         return
 
 
     if data.incorrect_delivery:
-        editor.set_goal_state("deliver_products",GoalState.Fail, new_text="Failed: defect product delivered!")
+        editor.set_goal_state("deliver_products",GoalState.Fail, new_text="Failed: defect product delivered. Please reset.")
         return
    
     editor.set_goal_state("deliver_products", GoalState.Open)
