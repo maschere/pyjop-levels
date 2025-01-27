@@ -130,8 +130,9 @@ def level_goal(goal_name: str):
         return
     editor.set_goal_state(goal_name, GoalState.Open)
 
-editor.set_goals_intro_text("The Airliftcrane is at (0,0,3). To figure out the position of the tire, get all instruction_sets from the DataExchange. They each consist of Left, Right, Forward, Backward commands and P for pickup. A correct instruction set will return the AirliftCrane back to 0,0 after pickup.")
-editor.specify_goal("levelGoal", "Pickup the tire with the AirliftCrane and drop it at 0,0", level_goal)
+#editor.set_goals_intro_text("The AirliftCrane is at (0,0,3). To figure out the position of the tire, get all instruction_sets from the DataExchange. They each consist of L = left, R = right, F = forward, B = backward commands and P = pickup. A correct instruction set will return the AirliftCrane back to (0,0) after pickup.")
+editor.set_goals_intro_text("The AirliftCrane is at (0,0,3). You need to figure out the location of the tire, move the crane there and pick it up, then move it back to the crane's starting location. To do that, you need to filter the instruction_sets from the DataExchange to find the correct one. They each consist of movement commands (L = 1m left, R = 1m right, F = 1m forward, B = 1m backward) and a pickup command (P). A correct instruction set will return the AirliftCrane back to (0,0) after pickup.")
+editor.specify_goal("levelGoal", "Pickup the tire with the AirliftCrane and drop it in the yellow drop zone back at \(0,0\)", level_goal)
 def cmd_goal(goal_name: str):
     s = GoalState.Success
     if data.command_count <= 0:
@@ -199,11 +200,14 @@ editor.run_editor_level()
 
 
 ### PLAYER TEMPLATE CODE ###
-#this template code will be provided to the player
-#add level specific hints or boilerplate code here.
+
 
 
 env = SimEnvManager.first()
+
+#get the instruction sets from the data exchange
+instructions = DataExchange.first().get_data("instruction_sets")
+#find the correct instruction set and move the crane accordingly
 
 while SimEnv.run_main():
     pass

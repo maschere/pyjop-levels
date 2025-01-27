@@ -65,6 +65,8 @@ editor.spawn_entity(SpawnableEntities.DataExchange,"result",location = (10,10,0)
 
 ### GOAL CODE ###
 def found_invalid() -> float:
+    if "invalid" not in DataExchange.first().get_keys():
+        return 0.0
     dat = DataExchange.first().get_data("invalid")
     inv = set()
     if hasattr(dat, "__len__"):

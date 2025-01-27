@@ -86,7 +86,7 @@ editor.add_hint(8,["How can I measure the goldbars that I have created?"], """Us
 def begin_play():
     dat = DataExchange.first()
     dat.on_rpc(on_rpc)
-    dat.set_data("goldsmiths", GOLDSMITHS)
+    
     on_reset()
     # sleep(3)
     # editor.play_camera_sequence([
@@ -134,6 +134,7 @@ def on_rpc(dat:DataExchange,rpc:RPCInvoke):
 
 ### ON LEVEL RESET CODE ###
 def on_reset():
+    DataExchange.first().set_data("goldsmiths", GOLDSMITHS)
     data.reset()
     
 editor.on_level_reset(on_reset)

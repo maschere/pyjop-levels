@@ -113,9 +113,6 @@ def on_deliver(trig:TriggerZone, gt:float, e:TriggerEvent):
         
 def begin_play():
     print("begin play")
-    for r in RangeFinder.find_all():
-        r.editor_set_can_read_rfid_tags(True)
-
     for t in TriggerZone.find_all():
         t.on_triggered(on_deliver)
     on_reset()
@@ -128,6 +125,8 @@ editor.on_begin_play(begin_play)
 ### ON LEVEL RESET CODE - Add code that should be executed on every level reset. ###
 def on_reset():
     print("level resetting")
+    for r in RangeFinder.find_all():
+        r.editor_set_can_read_rfid_tags(True)
     data.reset()
     spawn_next()
     # sleep(3)

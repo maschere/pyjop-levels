@@ -28,15 +28,18 @@ editor.spawn_entity(SpawnableEntities.DataExchange, "dat", location=(0, 0, 0))
 ### GOAL CODE - Define all goals for the player here and implement the goal update functions. ###
 def fib_goal(goal_name: str):
     s = GoalState.Open
-    if fib := str(DataExchange.first().get_data("result")):
-        s = GoalState.Success if fib == data.result else GoalState.Fail
+    dat = DataExchange.first()
+    datkeys = dat.get_keys()
+    if "result" in datkeys:
+        if fib := str(dat.get_data("result")):
+            s = GoalState.Success if fib == data.result else GoalState.Fail
 
     txt = f"Calculate the Fibonacci number at index [red]({data.target_fib}) and enter the result \(as a string\) in the DataExchange under key 'result'."
-    if s == GoalState.Fail:
+    if s == GoalState.Fail and "result" in datkeys:
         try:
-            if not isinstance(DataExchange.first().get_data("result"), str):
+            if not isinstance(dat.get_data("result"), str):
                 raise JoyfulException()
-            if int(DataExchange.first().get_data("result")) > int(data.result):
+            if int(dat.get_data("result")) > int(data.result):
                 txt += " [yellow](Your result is TOO LARGE!)"
             else:
                 txt += " [yellow](Your result is too small!)"

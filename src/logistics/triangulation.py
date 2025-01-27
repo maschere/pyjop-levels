@@ -109,7 +109,8 @@ editor.on_level_reset(on_reset)
 
 ### ON PLAYER COMMAND CODE - Add code that shoule be executed each time the player issues a code command to an entity
 def on_player_command(gametime:float, entity_type:str, entity_name:str, command:str, val:NPArray):
-    data.command_count += 1
+    if entity_type=="RobotArm" or entity_type=="MovablePlatform":
+        data.command_count += 1
 
 editor.on_player_command(on_player_command)
 ### END ON PLAYER COMMAND CODE ###

@@ -1,6 +1,5 @@
 ### INIT CODE - DO NOT CHANGE ###
 from pyjop import *
-from types import SimpleNamespace
 
 SimEnv.connect()
 editor = LevelEditor.first()
