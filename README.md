@@ -3,4 +3,4 @@ This repository contains the source-code for most of the levels included in [JOY
 
 # Contributing
 
-Generally I'd recommend uploading your own creations to the Steam Workshop for JOY OF PROGRAMMING. If want to contribute your level to the main game, you can do so under the MIT License by raising a pull request here. But please understand that I cannot guarantee to include your level in the game.
+Generally I'd recommend uploading your own creations to the Steam Workshop for JOY OF PROGRAMMING. If you want to contribute your level to the main game, you can do so under the MIT License by raising a pull request here. But please understand that I cannot guarantee to include your level in the game.
