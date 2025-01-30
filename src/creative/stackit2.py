@@ -85,7 +85,7 @@ editor.add_hint(4,["Where should I build the house?","Is the location of the hou
 
 ### ON BEGIN PLAY CODE - Add any code that should be executed after constructing the level once. ###
 def begin_play():
-    pass
+    on_reset()
     
 
 

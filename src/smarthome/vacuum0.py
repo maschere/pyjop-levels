@@ -8,12 +8,22 @@ editor = LevelEditor.first()
 ### IMPORTS - Add your imports here ###
 import random
 ### END IMPORTS ###
-
+SCALE_DIV = 2.0
+N = 10
 ### DATA MODEL - Define a data model needed for this custom level to share data between function calls ###
 class DataModel(DataModelBase):
     def __init__(self) -> None:
         super().__init__()
-        self.z_levels:Set[int] = set()
+        self.time_counter = 0.0
+        self.dirt_count = 0
+
+    def spawn_dirt(self):
+    #entities or meshes with is_temp=True are automatically removed on level reset. as such it often makes sense to call this function on each level reset to respawn the temp objects in their original location.
+        for i in range(2,N-1):
+            for j in range(1,N-1):
+                if random.random()>0.3:
+                    self.dirt_count += 1
+                    editor.spawn_static_mesh(SpawnableMeshes.DirtPile, location=(i/SCALE_DIV,j/SCALE_DIV, 0), is_temp = True, scale=(random.uniform(0.2,0.5),random.uniform(0.2,0.5),0.4), rotation=Rotator3(0,0,random.uniform(-180,180)), rfid_tag="Dirt")
         
 
 data = DataModel()
@@ -21,41 +31,42 @@ data = DataModel()
 
 
 ### CONSTRUCTION CODE - Add all code to setup the level (select map, spawn entities) here ###
-editor.select_map(SpawnableMaps.MuseumHall)
-editor.spawn_entity(SpawnableEntities.VoxelBuilder, "stacker", location=(0, 0, 0))
-editor.set_map_bounds(extends=(16,16,20))
+editor.select_map(SpawnableMaps.MinimalisticIndoor)
+editor.spawn_entity(SpawnableEntities.VacuumRobot, "vac", location=(0.1+1/SCALE_DIV, 0.1+1/SCALE_DIV, 0))
+for i in range(N):
+    for j in (0,N-1):
+        editor.spawn_static_mesh(SpawnableMeshes.Cube, location=(i/SCALE_DIV,j/SCALE_DIV, 0), scale = 0.5/SCALE_DIV, material=SpawnableMaterials.SimpleColor, color = 0.03)
+        editor.spawn_static_mesh(SpawnableMeshes.Cube, location=(j/SCALE_DIV,i/SCALE_DIV, 0), scale = 0.5/SCALE_DIV, material=SpawnableMaterials.SimpleColor, color = 0.03)
+
+
 ### END CONSTRUCTION CODE ###
 
 
 ### GOAL CODE - Define all goals for the player here and implement the goal update functions. ###
-def stack_goal(goal_name: str):
 
-    levels = sorted(list(data.z_levels))
-    height = 0
-    for i,e in enumerate(levels):
-        height = i+1
-        if i == 0:
-            continue
-        if levels[i-1] != e-1:
-            break
-    
+editor.set_goals_intro_text("Program this easy to use vacuum cleaner robot to clean up all dirt.")
+
+def dirt_goal(goal_name: str):
+    if data.dirt_count <=0:
+        editor.set_goal_progress(goal_name,0)
+        return
     editor.set_goal_progress(
         goal_name,
-        height / 15
+        VacuumRobot.first().get_dirt_count() / data.dirt_count,
+        f"Cleanup all dirt: {VacuumRobot.first().get_dirt_count()} / {data.dirt_count}.",
     )
 
-
-editor.specify_goal("stack_goal", "Use the VoxelBuilder to stack a tower at least 15 bricks high. The rest is up to your creativity.", stack_goal)
+editor.specify_goal("dirt_goal", "Cleanup all dirt.", dirt_goal)
 ### END GOAL CODE ###
 
 
 ### HINTS CHAT - Define custom hints as question / answer pairs that the player can get answers to via the assistant chat in-game. Consecutive hints are hidden until the direct precursor is revealed.###
-editor.add_hint(0,["How does voxelbuilder / block stacker work?","How can I spawn bricks?"], """Use the VoxelBuilder and its 'build_voxel' functionl. Here is an example: 
-[#9CDCFE](stacker) = [#4ABCA5](VoxelBuilder).[#DCDCAA](first)\(\)
-[#9CDCFE](stacker).[#DCDCAA](build_voxel)\([#9CDCFE](location)=\([#B5CEA8](0),[#B5CEA8](0),[#B5CEA8](0)\),
-                    [#9CDCFE](color) = [#4ABCA5](Colors).[#B5CEA8](Red),
-                    [#9CDCFE](simulate_physics)=[#C586C0](False)\)""")
+# editor.add_hint(0,["What is 2+4?","What is 2*3?"], "The result is 6.")
 
+# def select_conveyor(gt:float, num:int, num_revealed:int):
+#     editor.change_hint(num, "Here it is!")
+#     ConveyorBelt.find("belt1").focus()
+# editor.add_hint(3,["Where is the conveyor belt?"], on_reveal=select_conveyor)
 ### END HINTS ###
 
 
@@ -72,6 +83,7 @@ editor.on_begin_play(begin_play)
 def on_reset():
     print("level resetting")
     data.reset()
+    data.spawn_dirt()
 
 
 editor.on_level_reset(on_reset)
@@ -79,16 +91,9 @@ editor.on_level_reset(on_reset)
 
 
 ### ON PLAYER COMMAND CODE - Add code that should be executed each time the player issues a code command to an entity
-def on_player_command(gametime:float, entity_type:str, entity_name:str, command:str, val:NPArray):
-    if entity_type == "VoxelBuilder" and command == "BuildVoxel":
-        loc_z = int(val.get_json_dict()["Location"]["z"])
-        if loc_z >= 0 and loc_z <=20:
-            data.z_levels.add(loc_z)
-
-editor.on_player_command(on_player_command)
 ### END ON PLAYER COMMAND CODE ###
 
-
+### LEVEL TICK CODE - Add code that should be executed on every simulation tick. ###
 ### END LEVEL TICK CODE ###
 
 
